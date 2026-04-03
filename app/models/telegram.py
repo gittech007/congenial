@@ -26,7 +26,7 @@ class TelegramUser(Base):
         nullable=False,
     )
 
-    orders: Mapped[list] = relationship("Order", back_populates="telegram_user")
+    orders: Mapped[list["Order"]] = relationship("Order", back_populates="telegram_user")
     state: Mapped[UserState | None] = relationship(
         "UserState", back_populates="telegram_user", uselist=False
     )
