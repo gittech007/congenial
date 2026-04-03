@@ -74,12 +74,12 @@ class Order(Base):
         nullable=False,
     )
 
-    telegram_user: Mapped = relationship("TelegramUser", back_populates="orders")
-    country: Mapped = relationship("Country", back_populates="orders")
-    us_state: Mapped = relationship("USState", back_populates="orders")
-    plan: Mapped = relationship("Plan", back_populates="orders")
-    os_option: Mapped = relationship("OSOption", back_populates="orders")
-    validity: Mapped = relationship("Validity", back_populates="orders")
+    telegram_user: Mapped["TelegramUser"] = relationship("TelegramUser", back_populates="orders")
+    country: Mapped["Country"] = relationship("Country", back_populates="orders")
+    us_state: Mapped["USState | None"] = relationship("USState", back_populates="orders")
+    plan: Mapped["Plan"] = relationship("Plan", back_populates="orders")
+    os_option: Mapped["OSOption"] = relationship("OSOption", back_populates="orders")
+    validity: Mapped["Validity"] = relationship("Validity", back_populates="orders")
     payment: Mapped[Payment | None] = relationship(
         "Payment", back_populates="order", uselist=False
     )

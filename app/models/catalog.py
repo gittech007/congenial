@@ -16,7 +16,7 @@ class Country(Base):
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     us_states: Mapped[list[USState]] = relationship("USState", back_populates="country")
-    orders: Mapped[list] = relationship("Order", back_populates="country")
+    orders: Mapped[list["Order"]] = relationship("Order", back_populates="country")
 
     def __str__(self) -> str:
         return f"{self.name} ({self.prefix})"
@@ -34,7 +34,7 @@ class USState(Base):
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     country: Mapped[Country] = relationship("Country", back_populates="us_states")
-    orders: Mapped[list] = relationship("Order", back_populates="us_state")
+    orders: Mapped[list["Order"]] = relationship("Order", back_populates="us_state")
 
     def __str__(self) -> str:
         return self.name
@@ -52,7 +52,7 @@ class Plan(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
-    orders: Mapped[list] = relationship("Order", back_populates="plan")
+    orders: Mapped[list["Order"]] = relationship("Order", back_populates="plan")
 
     def __str__(self) -> str:
         return self.name
@@ -66,7 +66,7 @@ class OSOption(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
-    orders: Mapped[list] = relationship("Order", back_populates="os_option")
+    orders: Mapped[list["Order"]] = relationship("Order", back_populates="os_option")
 
     def __str__(self) -> str:
         return self.name
@@ -80,7 +80,7 @@ class Validity(Base):
     days: Mapped[int] = mapped_column(Integer, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
-    orders: Mapped[list] = relationship("Order", back_populates="validity")
+    orders: Mapped[list["Order"]] = relationship("Order", back_populates="validity")
 
     def __str__(self) -> str:
         return self.label
