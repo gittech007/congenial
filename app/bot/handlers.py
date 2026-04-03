@@ -644,7 +644,7 @@ async def cb_back_to_validity(query: CallbackQuery) -> None:
         username=from_.username,
     )
     state = await get_or_create_user_state(user.id)
-    state.current_step = "os"
+    state.current_step = "validity"
     await save_user_state(state)
 
     async with AsyncSessionLocal() as session:

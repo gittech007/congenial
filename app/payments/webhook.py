@@ -26,11 +26,15 @@ def _verify_signature(body: dict, received_sign: str, api_key: str) -> bool:
     Cryptomus signs webhooks as:
         md5( base64_encode( json_encode(body_without_sign, JSON_UNESCAPED_UNICODE) ) + API_KEY )
     Forward-slashes must be escaped as \\/ in the JSON string.
+
+    Note: MD5 is mandated by the Cryptomus API specification for webhook signature
+    verification. It is NOT used for password hashing or storing sensitive data.
     """
     json_str = json.dumps(body, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
     json_str = json_str.replace("/", "\\/")
     encoded = base64.b64encode(json_str.encode("utf-8")).decode("utf-8")
-    expected = hashlib.md5((encoded + api_key).encode("utf-8")).hexdigest()
+    # MD5 required by Cryptomus API spec for webhook signature verification (not password hashing)
+    expected = hashlib.md5((encoded + api_key).encode("utf-8")).hexdigest()  # noqa: S324
     return hmac.compare_digest(expected, received_sign)
 
 
@@ -192,24 +196,36 @@ async def cryptomus_webhook(request: Request) -> Response:
                 telegram_id = order.telegram_user.telegram_id
 
             await session.commit()
+
+            # Mark event as processed
+            ev = await session.get(WebhookEvent, event_id)
+            if ev:
+                ev.processed = True
+                await session.commit()
+
             await _send_telegram_message(telegram_id, msg_text)
 
         elif status == "wrong_amount":
             order.status = OrderStatus.manual_review
             await session.commit()
 
+            # Mark event as processed
+            ev = await session.get(WebhookEvent, event_id)
+            if ev:
+                ev.processed = True
+                await session.commit()
+
         else:
-            # Other statuses: log only
+            # Other statuses (confirm_check, fail, cancel, refund_*): log only, mark as processed
             logger.info(
                 "Cryptomus webhook: unhandled status=%s for order=%s",
                 status,
                 order.id,
             )
-
-        # Mark event as processed
-        ev = await session.get(WebhookEvent, event_id)
-        if ev:
-            ev.processed = True
-            await session.commit()
+            ev = await session.get(WebhookEvent, event_id)
+            if ev:
+                ev.processed = True
+                ev.error_message = f"Unhandled status: {status}"
+                await session.commit()
 
     return Response(status_code=200, content="ok")
